@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#FAF7F2" />
+  <meta name="description" content="Catatan Uang — Pencatat pemasukan & pengeluaran pribadi yang tenang, cepat, dan bisa offline (PWA)." />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Catatan Uang" />
+
+  <title>Catatan Uang — Keuangan Pribadi</title>
+
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+
+  <!-- Tipografi editorial hangat (dengan fallback sistem yang aman saat offline) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Banner Install PWA (muncul jika browser mendukung install langsung) -->
+    <div id="install-banner" class="install-banner hidden" role="region" aria-label="Pasang aplikasi">
+      <div class="install-banner-text">
+        <strong>Pasang ke Layar Utama</strong>
+        <span>Akses cepat & tetap jalan saat offline</span>
+      </div>
+      <div class="install-banner-actions">
+        <button type="button" id="btn-install-pwa" class="btn-pill btn-pill-primary">Pasang</button>
+        <button type="button" id="btn-dismiss-install" class="btn-icon-ghost" aria-label="Tutup banner pasang">✕</button>
+      </div>
+    </div>
+
+    <!-- KONTEN UTAMA (4 TAB) -->
+    <main class="app-main">
+      <!-- ==================== TAB 1: BERANDA ==================== -->
+      <section id="view-home" class="view active" aria-labelledby="home-title">
+        <header class="page-header">
+          <div>
+            <p class="eyebrow">CATATAN KEUANGAN HARIAN</p>
+            <h1 id="home-title" class="page-title">Lebih jelas, lebih tenang.</h1>
+            <p class="page-subtitle">Pantau keluar-masuk uangmu hari demi hari.</p>
+          </div>
+          <button type="button" class="btn-add-fab" data-action="open-add" aria-label="Tambah transaksi baru" title="Tambah transaksi">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
+        </header>
+
+        <!-- Kartu Saldo Utama (Blush Terracotta) -->
+        <article class="card card-balance">
+          <div class="card-balance-top">
+            <span class="card-label">Total Saldo Saat Ini</span>
+            <button type="button" id="home-month-pill" class="month-pill" title="Ganti bulan ringkasan">
+              <span id="home-month-label">November 2026</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+          </div>
+
+          <div id="home-total-balance" class="balance-amount">Rp0</div>
+          <p class="balance-caption">Akumulasi pemasukan dikurangi pengeluaran</p>
+
+          <div class="balance-split">
+            <div class="split-item">
+              <span class="split-icon split-icon-in" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 5v14M19 12l-7 7-7-7" />
+                </svg>
+              </span>
+              <div>
+                <span class="split-label">Pemasukan bulan ini</span>
+                <strong id="home-month-income" class="split-value">Rp0</strong>
+              </div>
+            </div>
+
+            <div class="split-item">
+              <span class="split-icon split-icon-out" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 19V5M5 12l7-7 7 7" />
+                </svg>
+              </span>
+              <div>
+                <span class="split-label">Pengeluaran bulan ini</span>
+                <strong id="home-month-expense" class="split-value">Rp0</strong>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Kartu Anggaran Bulanan (Sage Green) -->
+        <article class="card card-budget" id="home-budget-card">
+          <div class="card-budget-top">
+            <span class="card-label">Anggaran bulanan</span>
+            <button type="button" id="btn-edit-budget-home" class="btn-chip-light">Atur</button>
+          </div>
+          <div class="budget-headline">
+            <strong id="home-budget-remaining" class="budget-number">Rp0</strong>
+            <span id="home-budget-status-text" class="budget-sub">tersisa bulan ini</span>
+          </div>
+          <div class="progress-track" aria-hidden="true">
+            <div id="home-budget-bar" class="progress-fill" style="width: 0%"></div>
+          </div>
+          <div class="budget-foot">
+            <span id="home-budget-spent">Terpakai Rp0</span>
+            <span id="home-budget-limit">Target Rp3.000.000</span>
+          </div>
+        </article>
+
+        <!-- Aktivitas Terbaru -->
+        <section class="section-block" aria-label="Aktivitas terbaru">
+          <div class="section-header">
+            <h2 class="section-title">Aktivitas Terbaru</h2>
+            <button type="button" class="btn-text-accent" data-nav="activity">Lihat semua</button>
+          </div>
+          <div id="home-recent-list" class="tx-list"></div>
+        </section>
+      </section>
+
+      <!-- ==================== TAB 2: AKTIVITAS ==================== -->
+      <section id="view-activity" class="view" aria-labelledby="activity-title">
+        <header class="page-header">
+          <div>
+            <p class="eyebrow">UANGMU, HARI DEMI HARI</p>
+            <h1 id="activity-title" class="page-title">Aktivitas</h1>
+            <p class="page-subtitle">Semua transaksi tercatat rapi di satu tempat.</p>
+          </div>
+          <button type="button" class="btn-add-fab" data-action="open-add" aria-label="Tambah transaksi baru" title="Tambah transaksi">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
+        </header>
+
+        <!-- Navigasi Bulan -->
+        <div class="month-nav">
+          <button type="button" id="btn-prev-month" class="month-arrow" aria-label="Bulan sebelumnya">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+          </button>
+          <button type="button" id="btn-toggle-all-months" class="month-current" title="Klik untuk beralih antara bulan ini dan semua bulan">
+            <span id="activity-month-label">November 2026</span>
+          </button>
+          <button type="button" id="btn-next-month" class="month-arrow" aria-label="Bulan berikutnya">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Ringkasan Cepat Pemasukan & Pengeluaran -->
+        <div class="summary-pair">
+          <div class="summary-box summary-box-in">
+            <div class="summary-box-top">
+              <span>Pemasukan</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14M19 12l-7 7-7-7" />
+              </svg>
+            </div>
+            <strong id="activity-income-total">Rp0</strong>
+          </div>
+          <div class="summary-box summary-box-out">
+            <div class="summary-box-top">
+              <span>Pengeluaran</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 19V5M5 12l7-7 7 7" />
+              </svg>
+            </div>
+            <strong id="activity-expense-total">Rp0</strong>
+          </div>
+        </div>
+
+        <!-- Pencarian & Tombol Filter -->
+        <div class="search-row">
+          <div class="search-input-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+            <input type="search" id="filter-search" placeholder="Cari transaksi, kategori, metode..." autocomplete="off" />
+          </div>
+          <button type="button" id="btn-toggle-filters" class="btn-filter-toggle" aria-expanded="false" aria-controls="advanced-filters" title="Filter lanjutan">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="4" x2="20" y1="6" y2="6" />
+              <line x1="7" x2="17" y1="12" y2="12" />
+              <line x1="10" x2="14" y1="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Filter Tipe -->
+        <div class="pill-group" role="tablist" aria-label="Filter tipe transaksi">
+          <button type="button" class="filter-pill active" data-type-filter="all">Semua</button>
+          <button type="button" class="filter-pill" data-type-filter="income">Pemasukan</button>
+          <button type="button" class="filter-pill" data-type-filter="expense">Pengeluaran</button>
+        </div>
+
+        <!-- Filter Kategori & Metode Pembayaran -->
+        <div id="advanced-filters" class="advanced-filters hidden">
+          <div class="filter-grid">
+            <label class="filter-field">
+              <span>Kategori</span>
+              <select id="filter-category">
+                <option value="all">Semua Kategori</option>
+              </select>
+            </label>
+            <label class="filter-field">
+              <span>Metode Pembayaran</span>
+              <select id="filter-payment">
+                <option value="all">Semua Metode</option>
+              </select>
+            </label>
+          </div>
+          <div class="filter-footer">
+            <span id="filter-count-info" class="filter-count-info">0 transaksi</span>
+            <button type="button" id="btn-reset-filters" class="btn-text-accent">Reset filter</button>
+          </div>
+        </div>
+
+        <!-- Daftar Transaksi Dikelompokkan per Tanggal -->
+        <div id="activity-list" class="activity-groups"></div>
+      </section>
+
+      <!-- ==================== TAB 3: ANALISIS ==================== -->
+      <section id="view-insights" class="view" aria-labelledby="insights-title">
+        <header class="page-header">
+          <div>
+            <p class="eyebrow">PAHAMI POLA BELANJAMU</p>
+            <h1 id="insights-title" class="page-title">Analisis</h1>
+            <p class="page-subtitle">Gambaran besar pengeluaran bulan ini.</p>
+          </div>
+          <button type="button" class="btn-add-fab" data-action="open-add" aria-label="Tambah transaksi baru" title="Tambah transaksi">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
+        </header>
+
+        <!-- Navigasi Bulan Analisis -->
+        <div class="month-nav">
+          <button type="button" id="btn-insights-prev" class="month-arrow" aria-label="Bulan sebelumnya">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+          </button>
+          <span id="insights-month-label" class="month-current-static">November 2026</span>
+          <button type="button" id="btn-insights-next" class="month-arrow" aria-label="Bulan berikutnya">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Kartu Grafik Pengeluaran (Mingguan / Harian) -->
+        <article class="card card-spending-chart">
+          <div class="card-balance-top">
+            <span class="card-label">Pengeluaran bulan ini</span>
+            <div class="chart-mode-pills" role="tablist" aria-label="Tampilan grafik pengeluaran">
+              <button type="button" class="chart-pill active" data-chart-period="weekly">Mingguan</button>
+              <button type="button" class="chart-pill" data-chart-period="daily">Harian</button>
+            </div>
+          </div>
+          <div id="insights-month-expense" class="spending-total">Rp0</div>
+          <p id="insights-period-range" class="spending-range">Tanggal 1–30</p>
+          <div id="weekly-bar-chart" class="weekly-chart" aria-label="Grafik batang pengeluaran"></div>
+          <div id="daily-detail-bar" class="daily-detail-bar hidden"></div>
+        </article>
+
+        <!-- Breakdown Kategori / Metode Pembayaran -->
+        <section class="section-block">
+          <div class="section-header">
+            <h2 class="section-title">Ke mana perginya</h2>
+            <span id="breakdown-group-count" class="muted-meta">0 item</span>
+          </div>
+
+          <div class="segmented-switch" role="tablist" aria-label="Mode ringkasan diagram">
+            <button type="button" class="seg-btn active" data-breakdown-mode="category">Per Kategori</button>
+            <button type="button" class="seg-btn" data-breakdown-mode="payment">Per Metode</button>
+          </div>
+
+          <!-- Batang Proporsi Tumpuk -->
+          <div id="breakdown-stacked-bar" class="stacked-bar" aria-hidden="true"></div>
+
+          <!-- Daftar Rincian -->
+          <div id="breakdown-list" class="breakdown-list"></div>
+
+          <!-- Kartu Sorotan Terbesar -->
+          <div id="insight-callout" class="insight-callout hidden">
+            <span class="insight-bulb" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" />
+                <path d="M9 18h6M10 22h4" />
+              </svg>
+            </span>
+            <div>
+              <strong id="insight-callout-title">Pengeluaran terbesar</strong>
+              <p id="insight-callout-desc"></p>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- ==================== TAB 4: DATA & BACKUP ==================== -->
+      <section id="view-data" class="view" aria-labelledby="data-title">
+        <header class="page-header">
+          <div>
+            <p class="eyebrow">PENYIMPANAN LOKAL & CADANGAN</p>
+            <h1 id="data-title" class="page-title">Data & Backup</h1>
+            <p class="page-subtitle">Tersimpan otomatis di perangkatmu, aman saat offline.</p>
+          </div>
+        </header>
+
+        <!-- Status Penyimpanan -->
+        <article class="card card-sage-soft">
+          <div class="data-status-row">
+            <div>
+              <span class="card-label">Penyimpanan Lokal (localStorage)</span>
+              <strong id="data-total-count" class="data-stat-big">0 transaksi tersimpan</strong>
+              <p id="data-last-saved" class="data-stat-sub">Semua perubahan otomatis tersimpan di browser ini.</p>
+            </div>
+            <span class="status-badge-ok">Aktif</span>
+          </div>
+        </article>
+
+        <!-- Anggaran Bulanan -->
+        <article class="card card-surface">
+          <div class="action-card-row">
+            <div>
+              <h2 class="card-heading">Target Anggaran Bulanan</h2>
+              <p id="data-budget-label" class="card-desc">Batas pengeluaran bulanan: Rp3.000.000</p>
+            </div>
+            <button type="button" id="btn-edit-budget-data" class="btn-pill btn-pill-outline">Ubah</button>
+          </div>
+        </article>
+
+        <!-- Export & Backup -->
+        <section class="section-block">
+          <h2 class="section-title">Ekspor & Cadangkan Data</h2>
+
+          <div class="action-stack">
+            <button type="button" id="btn-export-csv" class="action-tile">
+              <span class="action-tile-icon tint-sage">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <path d="M14 2v6h6M8 13h8M8 17h8" />
+                </svg>
+              </span>
+              <span class="action-tile-text">
+                <strong>Export ke CSV</strong>
+                <small>Unduh tabel transaksi untuk dibuka di Excel / Google Sheets</small>
+              </span>
+              <span class="action-tile-arrow">↓</span>
+            </button>
+
+            <button type="button" id="btn-backup-json" class="action-tile">
+              <span class="action-tile-icon tint-blush">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" x2="12" y1="15" y2="3" />
+                </svg>
+              </span>
+              <span class="action-tile-text">
+                <strong>Backup JSON</strong>
+                <small>Simpan seluruh data & pengaturan ke file .json</small>
+              </span>
+              <span class="action-tile-arrow">↓</span>
+            </button>
+
+            <label for="input-restore-json" class="action-tile action-tile-label">
+              <span class="action-tile-icon tint-sand">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" x2="12" y1="3" y2="15" />
+                </svg>
+              </span>
+              <span class="action-tile-text">
+                <strong>Restore dari JSON</strong>
+                <small>Pulihkan data transaksi dari file backup .json</small>
+              </span>
+              <span class="action-tile-arrow">↑</span>
+              <input type="file" id="input-restore-json" accept=".json,application/json" class="sr-only" />
+            </label>
+          </div>
+        </section>
+
+        <!-- Utilitas & PWA -->
+        <section class="section-block">
+          <h2 class="section-title">Utilitas & PWA</h2>
+          <div class="action-stack">
+            <button type="button" id="btn-seed-demo" class="action-tile">
+              <span class="action-tile-icon tint-sage">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                </svg>
+              </span>
+              <span class="action-tile-text">
+                <strong>Muat Data Contoh</strong>
+                <small>Tambahkan contoh transaksi untuk mencoba fitur aplikasi</small>
+              </span>
+              <span class="action-tile-arrow">+</span>
+            </button>
+
+            <button type="button" id="btn-pwa-guide" class="action-tile">
+              <span class="action-tile-icon tint-sand">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="14" height="20" x="5" y="2" rx="2" ry="2" />
+                  <path d="M12 18h.01" />
+                </svg>
+              </span>
+              <span class="action-tile-text">
+                <strong>Pasang ke Layar Utama HP</strong>
+                <small id="pwa-status-text">Cara menambahkan aplikasi sebagai PWA di Android / iOS</small>
+              </span>
+              <span class="action-tile-arrow">→</span>
+            </button>
+
+            <button type="button" id="btn-clear-all" class="action-tile action-tile-danger">
+              <span class="action-tile-icon tint-danger">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                </svg>
+              </span>
+              <span class="action-tile-text">
+                <strong>Hapus Semua Data</strong>
+                <small>Kosongkan seluruh riwayat transaksi di perangkat ini</small>
+              </span>
+              <span class="action-tile-arrow">!</span>
+            </button>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <!-- NAVIGASI BAWAH (BOTTOM TAB BAR) -->
+    <nav class="bottom-nav" aria-label="Navigasi utama">
+      <button type="button" class="nav-item active" data-tab="home">
+        <span class="nav-icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" />
+          </svg>
+        </span>
+        <span class="nav-label">Beranda</span>
+      </button>
+
+      <button type="button" class="nav-item" data-tab="activity">
+        <span class="nav-icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="16" height="18" x="4" y="3" rx="2" />
+            <path d="M8 8h8M8 12h8M8 16h5" />
+          </svg>
+        </span>
+        <span class="nav-label">Aktivitas</span>
+      </button>
+
+      <button type="button" class="nav-item" data-tab="insights">
+        <span class="nav-icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 20V14M12 20V4M18 20v-8" />
+          </svg>
+        </span>
+        <span class="nav-label">Analisis</span>
+      </button>
+
+      <button type="button" class="nav-item" data-tab="data">
+        <span class="nav-icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="12" cy="5" rx="8" ry="3" />
+            <path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5" />
+            <path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6" />
+          </svg>
+        </span>
+        <span class="nav-label">Data</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ==================== MODAL TAMBAH / EDIT TRANSAKSI ==================== -->
+  <div id="tx-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="tx-modal-title">
+    <div class="modal-sheet">
+      <div class="modal-handle" aria-hidden="true"></div>
+      <div class="modal-header">
+        <h2 id="tx-modal-title" class="modal-title">Tambah Transaksi</h2>
+        <button type="button" class="btn-icon-ghost" id="btn-close-tx-modal" aria-label="Tutup form">✕</button>
+      </div>
+
+      <form id="tx-form" class="modal-form" novalidate>
+        <input type="hidden" id="tx-id" />
+
+        <!-- Pilihan Tipe -->
+        <div class="type-switch" role="radiogroup" aria-label="Tipe transaksi">
+          <button type="button" class="type-btn active" data-tx-type="expense">Pengeluaran</button>
+          <button type="button" class="type-btn" data-tx-type="income">Pemasukan</button>
+        </div>
+
+        <!-- Nominal -->
+        <label class="form-field">
+          <span class="form-label">Nominal (Rp)</span>
+          <div class="amount-input-wrap">
+            <span class="currency-prefix">Rp</span>
+            <input type="text" id="tx-amount" inputmode="numeric" placeholder="0" required autocomplete="off" />
+          </div>
+          <small id="tx-amount-error" class="form-error hidden"></small>
+        </label>
+
+        <!-- Kategori & Metode Pembayaran / Sumber Dana -->
+        <div class="form-row-2">
+          <label class="form-field">
+            <span id="tx-category-label" class="form-label">Kategori</span>
+            <select id="tx-category" required></select>
+          </label>
+
+          <label class="form-field">
+            <span id="tx-payment-label" class="form-label">Metode Pembayaran</span>
+            <select id="tx-payment" required></select>
+          </label>
+        </div>
+
+        <!-- Tanggal -->
+        <label class="form-field">
+          <span class="form-label">Tanggal</span>
+          <input type="date" id="tx-date" required />
+        </label>
+
+        <!-- Catatan Singkat -->
+        <label class="form-field">
+          <span class="form-label">Catatan Singkat</span>
+          <input type="text" id="tx-note" maxlength="80" placeholder="Contoh: Kopi susu, Pertamax, Belanja..." autocomplete="off" />
+        </label>
+
+        <div class="modal-actions">
+          <button type="button" id="btn-delete-tx-modal" class="btn-danger-outline hidden">Hapus</button>
+          <button type="submit" id="btn-save-tx" class="btn-primary-full">Simpan Transaksi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL ATUR ANGGARAN ==================== -->
+  <div id="budget-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="budget-modal-title">
+    <div class="modal-sheet modal-sheet-compact">
+      <div class="modal-handle" aria-hidden="true"></div>
+      <div class="modal-header">
+        <h2 id="budget-modal-title" class="modal-title">Target Anggaran Bulanan</h2>
+        <button type="button" class="btn-icon-ghost" id="btn-close-budget-modal" aria-label="Tutup modal anggaran">✕</button>
+      </div>
+      <form id="budget-form" class="modal-form">
+        <label class="form-field">
+          <span class="form-label">Batas Pengeluaran per Bulan (Rp)</span>
+          <div class="amount-input-wrap">
+            <span class="currency-prefix">Rp</span>
+            <input type="text" id="budget-input" inputmode="numeric" placeholder="3.000.000" required autocomplete="off" />
+          </div>
+        </label>
+        <button type="submit" class="btn-primary-full">Simpan Anggaran</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL PANDUAN PWA ==================== -->
+  <div id="pwa-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="pwa-modal-title">
+    <div class="modal-sheet modal-sheet-compact">
+      <div class="modal-handle" aria-hidden="true"></div>
+      <div class="modal-header">
+        <h2 id="pwa-modal-title" class="modal-title">Pasang ke Layar Utama</h2>
+        <button type="button" class="btn-icon-ghost" id="btn-close-pwa-modal" aria-label="Tutup panduan">✕</button>
+      </div>
+      <div class="pwa-guide-body">
+        <div class="pwa-step">
+          <strong>Android (Chrome / Edge)</strong>
+          <p>Ketuk menu titik tiga (⋮) di pojok kanan atas browser, lalu pilih <em>"Tambahkan ke layar utama"</em> atau <em>"Install app"</em>.</p>
+        </div>
+        <div class="pwa-step">
+          <strong>iPhone / iPad (Safari)</strong>
+          <p>Ketuk ikon Bagikan (kotak dengan panah ke atas), gulir ke bawah, lalu pilih <em>"Tambah ke Layar Utama"</em>.</p>
+        </div>
+        <button type="button" id="btn-pwa-modal-install" class="btn-primary-full hidden">Pasang Sekarang</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TOAST NOTIFIKASI ==================== -->
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+  <!-- Script Modular -->
+  <script src="./js/constants.js"></script>
+  <script src="./js/utils.js"></script>
+  <script src="./js/storage.js"></script>
+  <script src="./js/charts.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>

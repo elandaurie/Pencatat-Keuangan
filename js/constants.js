@@ -98,16 +98,16 @@ window.APP_CONSTANTS = (() => {
   ];
 
   const EXPENSE_PAYMENT_METHODS = [
-    { id: "QRIS Livin' Mandiri", label: "QRIS Livin' Mandiri", color: '#9E4A33' },
+    { id: 'QRIS', label: 'QRIS', color: '#9E4A33' },
+    { id: 'Transfer Bank', label: 'Transfer Bank', color: '#A5834B' },
     { id: 'GoPay', label: 'GoPay', color: '#5D7356' },
     { id: 'DANA', label: 'DANA', color: '#5A7B94' },
     { id: 'ShopeePay', label: 'ShopeePay', color: '#C46D45' },
-    { id: 'Mandiri e-money', label: 'Mandiri e-money', color: '#A5834B' },
     { id: 'Tunai', label: 'Tunai', color: '#7D736B' }
   ];
 
   const INCOME_SOURCES = [
-    { id: "Transfer Bank / Livin' Mandiri", label: "Transfer Bank / Livin' Mandiri", color: '#4A6343' },
+    { id: 'Transfer Bank', label: 'Transfer Bank', color: '#4A6343' },
     { id: 'Tunai', label: 'Tunai', color: '#7D736B' },
     { id: 'GoPay', label: 'GoPay', color: '#5D7356' },
     { id: 'DANA', label: 'DANA', color: '#5A7B94' },
@@ -156,7 +156,7 @@ window.APP_CONSTANTS = (() => {
         type: 'income',
         amount: 6500000,
         category: 'Gaji',
-        paymentMethod: "Transfer Bank / Livin' Mandiri",
+        paymentMethod: 'Transfer Bank',
         date: `${ym}-01`,
         note: 'Gaji bulanan',
         createdAt: Date.now() - 86400000 * 10
@@ -166,7 +166,7 @@ window.APP_CONSTANTS = (() => {
         type: 'expense',
         amount: 850000,
         category: 'Bulanan',
-        paymentMethod: "QRIS Livin' Mandiri",
+        paymentMethod: 'QRIS',
         date: clampDay(3),
         note: 'Listrik, air & internet',
         createdAt: Date.now() - 86400000 * 8
@@ -196,9 +196,9 @@ window.APP_CONSTANTS = (() => {
         type: 'expense',
         amount: 65000,
         category: 'Bensin & Transport',
-        paymentMethod: 'Mandiri e-money',
+        paymentMethod: 'Transfer Bank',
         date: clampDay(Math.max(1, day - 2)),
-        note: 'Top up e-money & tol',
+        note: 'Isi bensin & parkir',
         createdAt: Date.now() - 86400000 * 2
       },
       {

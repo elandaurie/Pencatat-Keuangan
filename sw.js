@@ -2,7 +2,7 @@
  * Service Worker dasar untuk Catatan Uang PWA.
  * Menyimpan aset aplikasi agar tetap bisa dibuka cepat dan offline.
  */
-const CACHE_NAME = 'catatan-uang-v3';
+const CACHE_NAME = 'catatan-uang-v4';
 const APP_SHELL_ASSETS = [
   './',
   './index.html',

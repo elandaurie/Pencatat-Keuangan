@@ -9,6 +9,12 @@ window.APP_STORAGE = (() => {
   const validCategoryIds = new Set(ALL_CATEGORIES.map((c) => c.id));
   const validPaymentIds = new Set(ALL_PAYMENT_METHODS.map((p) => p.id));
 
+  const LEGACY_PAYMENT_MAP = {
+    "QRIS Livin' Mandiri": 'QRIS',
+    'Mandiri e-money': 'Transfer Bank',
+    "Transfer Bank / Livin' Mandiri": 'Transfer Bank'
+  };
+
   function sanitizeTransaction(raw) {
     if (!raw || typeof raw !== 'object') return null;
     const amount = Math.round(Number(raw.amount) || 0);
@@ -16,7 +22,8 @@ window.APP_STORAGE = (() => {
 
     const type = raw.type === 'income' ? 'income' : 'expense';
     const category = validCategoryIds.has(raw.category) ? raw.category : 'Lainnya';
-    const paymentMethod = validPaymentIds.has(raw.paymentMethod) ? raw.paymentMethod : 'Tunai';
+    const migratedPayment = LEGACY_PAYMENT_MAP[raw.paymentMethod] || raw.paymentMethod;
+    const paymentMethod = validPaymentIds.has(migratedPayment) ? migratedPayment : 'Tunai';
     const date = /^\d{4}-\d{2}-\d{2}$/.test(String(raw.date || ''))
       ? String(raw.date)
       : getTodayISO();

@@ -65,8 +65,7 @@
   const navItems = document.querySelectorAll('.nav-item');
 
   // Home elements
-  const homeMonthLabel = document.getElementById('home-month-label');
-  const homeMonthPill = document.getElementById('home-month-pill');
+  const homeMonthSelect = document.getElementById('home-month-select');
   const homeTotalBalance = document.getElementById('home-total-balance');
   const homeMonthIncome = document.getElementById('home-month-income');
   const homeMonthExpense = document.getElementById('home-month-expense');
@@ -252,9 +251,28 @@
   }
 
   // ==================== RENDER BERANDA ====================
+  function populateHomeMonthSelect() {
+    const currentYM = getCurrentYearMonth();
+    const monthSet = new Set([state.selectedMonth, currentYM]);
+
+    for (let i = -11; i <= 1; i++) {
+      monthSet.add(shiftYearMonth(currentYM, i));
+    }
+    state.transactions.forEach((tx) => {
+      if (tx.date && tx.date.length >= 7) monthSet.add(tx.date.slice(0, 7));
+    });
+
+    const sortedMonths = Array.from(monthSet).sort((a, b) => b.localeCompare(a));
+    homeMonthSelect.innerHTML = '';
+    sortedMonths.forEach((ym) => {
+      homeMonthSelect.add(new Option(formatMonthLabel(ym), ym));
+    });
+    homeMonthSelect.value = state.selectedMonth;
+  }
+
   function renderHome() {
     const ym = state.selectedMonth;
-    homeMonthLabel.textContent = formatMonthLabel(ym);
+    populateHomeMonthSelect();
 
     let totalAllIncome = 0;
     let totalAllExpense = 0;
@@ -535,15 +553,12 @@
       }
     });
 
-    // Home month pill -> ke halaman Aktivitas atau geser bulan
-    homeMonthPill.addEventListener('click', () => {
-      state.selectedMonth = shiftYearMonth(state.selectedMonth, -1);
-      // Jika sudah jauh dari bulan sekarang atau klik lagi, user tetap bisa navigasi di Aktivitas/Analisis
-      if (state.selectedMonth < shiftYearMonth(getCurrentYearMonth(), -2)) {
-        state.selectedMonth = getCurrentYearMonth();
-      }
+    // Pilih bulan ringkasan di Beranda
+    homeMonthSelect.addEventListener('change', (e) => {
+      state.selectedMonth = e.target.value;
+      state.activityAllMonths = false;
+      state.selectedChartDay = null;
       renderAll();
-      showToast(`Menampilkan ${formatMonthLabel(state.selectedMonth)}`);
     });
 
     // Month Navigation (Activity & Insights)

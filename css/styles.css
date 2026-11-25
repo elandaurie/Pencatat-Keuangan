@@ -269,15 +269,37 @@ button {
   color: var(--ink-secondary);
 }
 
-.month-pill {
+.month-pill-wrap {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 5px 11px;
+}
+
+.month-pill-select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 5px 28px 5px 12px;
   border-radius: var(--radius-pill);
   background-color: rgba(255, 253, 249, 0.72);
+  font-family: inherit;
   font-size: 12px;
   font-weight: 600;
+  color: var(--ink-primary);
+  transition: background-color 140ms ease;
+}
+
+.month-pill-select:hover,
+.month-pill-select:focus {
+  background-color: rgba(255, 253, 249, 0.92);
+}
+
+.month-pill-chevron {
+  position: absolute;
+  right: 10px;
+  pointer-events: none;
   color: var(--ink-primary);
 }
 
